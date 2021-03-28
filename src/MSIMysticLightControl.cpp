@@ -7,6 +7,7 @@
 #include <atlsafe.h>
 #include <winbase.h>
 #include <sstream>
+#include <assert.h>
 
 #include "MysticLight/MysticLight_SDK.h"
 #include "MSIMysticLightControl.h"
@@ -20,9 +21,8 @@ int status;
 CComSafeArray<BSTR> dev;
 CComSafeArray<BSTR> led;
 
-BSTR gpu;
+BSTR gpu = L"MSI_VGA";
 
-std::ostringstream devLedMessage;
 
 struct MysticLight {
     LPMLAPI_Initialize init;
@@ -108,8 +108,16 @@ std::wstring statusMessage(int status_i) {
     return statusStr;
 }
 
+std::wstring convertBSTRtoWString(BSTR bs) {
+    assert(bs != nullptr);
+    std::wstring ws(bs, SysStringLen(bs));
+    return ws;
+}
+
 int main(int argc, char** argv) {
+    Log::info("Started MSIMysticLightService");
 //    Terminal terminal(1);
+    std::ostringstream devLedMessage;
     Log::init();
     if(loadDLL()) {
 //        terminal.showOptions(0, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
@@ -119,12 +127,14 @@ int main(int argc, char** argv) {
             Log::info(statusMessage(status));
             Log::info("Device Initialised.");
             statusMessage(mysticLight.getDeviceInfo(&(dev.m_psa), &(led.m_psa)));
-            for(LONG i = 0; i <= dev.GetUpperBound(); i++) {
-                devLedMessage << "Device #" << i << ":" << dev.GetAt(i).m_str << ", LED Count: " << led.GetAt(i).m_str;
+            for(LONG i = dev.GetLowerBound(); i <= dev.GetUpperBound(); i++) {
+                devLedMessage << "Device #" << i << ":" << convertBSTRtoWString(dev.GetAt(i)).c_str() << ", LED Count: " << convertBSTRtoWString(led.GetAt(i)).c_str();
+                Log::debug(std::to_string(i));
+//                std::printf("Device #%S:, LED Count:%S\n", ,  led.GetAt(i));
             }
             Log::debug(devLedMessage.str());
             Color getColor{};
-            Log::debug(statusMessage(mysticLight.getLEDColor(gpu, 1, &getColor.r, &getColor.g, &getColor.b)));
+            Log::debug(statusMessage(mysticLight.getLEDColor(dev.GetAt(0), 1, &getColor.r, &getColor.g, &getColor.b)));
             Log::debug(((std::ostringstream) "" << "Red: " << getColor.r << " Green: " << getColor.g << " Blue: " << getColor.b).str());
         } else {
             Log::error(statusMessage(status));
@@ -136,6 +146,6 @@ int main(int argc, char** argv) {
         return -1;
     }
     MSI::unloadDLL();
-    system("PAUSE");
+//    system("PAUSE");
     return 0;
 }

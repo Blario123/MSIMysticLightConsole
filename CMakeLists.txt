@@ -17,4 +17,4 @@ add_executable(MSIMysticLightConsole
         src/targetver.h
         include/MysticLight/MysticLight_SDK.h
 #        src/testCPP.cpp
-        )
+        src/NZXTLightControl.cpp src/NZXTLightControl.h)
