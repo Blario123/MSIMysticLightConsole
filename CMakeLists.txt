@@ -16,4 +16,5 @@ add_executable(MSIMysticLightConsole
         src/stdafx.h
         src/targetver.h
         include/MysticLight/MysticLight_SDK.h
+#        src/testCPP.cpp
         )
